@@ -24,6 +24,8 @@ import java.util.Optional;
 @Slf4j
 public class AuthService {
 
+    private final String ERR_USER_ALREADY_EXISTS = "User already exists";
+
     private final UserInfoRepo userInfoRepo;
     private final JwtGenerator jwtGenerator;
     private final RefreshTokenRepo refreshTokenRepo;
@@ -115,17 +117,25 @@ public class AuthService {
         return new UsernamePasswordAuthenticationToken(username, password);
     }
 
+    public boolean userEmailExists(UserRegistrationDto dto) {
+        return userInfoRepo.findByEmail(dto.email()).isPresent();
+    }
+
+    public boolean userUsernameExists(UserRegistrationDto dto) {
+        return userInfoRepo.findByUsername(dto.username()).isPresent();
+    }
+
     public AuthResponseDto registerUser(UserRegistrationDto userRegistrationDto, HttpServletResponse httpServletResponse){
 
         try{
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
-            Optional<UserInfoEntity> user = userInfoRepo.findByEmail(userRegistrationDto.email());
-            if(user.isPresent()){
-                throw new Exception("User Already Exist");
+            if (userEmailExists(userRegistrationDto) || userUsernameExists(userRegistrationDto)) {
+                throw new Exception(ERR_USER_ALREADY_EXISTS);
             }
 
-            // TODO: Check username as well
+            //TODO: Eventually, we should be able to differentiate between an email already being registered
+            //TODO: and a username already being registered. This would be good for responsiveness on the frontend
 
             UserInfoEntity userDetailsEntity = userInfoMapper.convertToEntity(userRegistrationDto);
             Authentication authentication = createAuthenticationObject(userDetailsEntity);
@@ -152,6 +162,9 @@ public class AuthService {
 
         }catch (Exception e){
             log.error("[AuthService:registerUser]Exception while registering the user due to: {}", e.getMessage());
+            if (e.getMessage().equals(ERR_USER_ALREADY_EXISTS)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+            }
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }
 
