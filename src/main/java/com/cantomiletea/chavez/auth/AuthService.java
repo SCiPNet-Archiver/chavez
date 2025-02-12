@@ -9,6 +9,7 @@ import com.cantomiletea.chavez.user.UserInfoRepo;
 import com.cantomiletea.chavez.user.UserRegistrationDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,8 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
-
-    private final String ERR_USER_ALREADY_EXISTS = "User already exists";
 
     private final UserInfoRepo userInfoRepo;
     private final JwtGenerator jwtGenerator;
@@ -129,7 +128,7 @@ public class AuthService {
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
             if (userEmailExists(userRegistrationDto) || userUsernameExists(userRegistrationDto)) {
-                throw new Exception(ERR_USER_ALREADY_EXISTS);
+                throw new UserAlreadyExistsException("User already exists");
             }
 
             //TODO: Eventually, we should be able to differentiate between an email already being registered
@@ -158,11 +157,16 @@ public class AuthService {
                     .build();
 
 
-        }catch (Exception e){
-            log.error("[AuthService:registerUser]Exception while registering the user due to: {}", e.getMessage());
-            if (e.getMessage().equals(ERR_USER_ALREADY_EXISTS)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
-            }
+        } catch (ConstraintViolationException e) {
+            log.error("[AuthService:registerUser] ERROR :: Password too simple");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password too simple");
+
+        } catch (UserAlreadyExistsException e) {
+            log.error("[AuthService:registerUser] ERROR :: User already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+
+        } catch (Exception e){
+            log.error("[AuthService:registerUser] ERROR :: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }
 
