@@ -1,5 +1,6 @@
 package com.cantomiletea.chavez.auth;
 
+import com.cantomiletea.chavez.auth.exception.UserAlreadyExistsException;
 import com.cantomiletea.chavez.auth.jwt.JwtGenerator;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenEntity;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenRepo;
