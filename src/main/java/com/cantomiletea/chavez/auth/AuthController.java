@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -51,14 +50,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
-        try {
-            return ResponseEntity.ok(authService.registerUser(userRegistrationDto, httpServletResponse));
-        } catch (ResponseStatusException e) {
-            return switch (e.getStatusCode()) {
-                case HttpStatus.CONFLICT -> ResponseEntity.status(HttpStatus.CONFLICT).body("Email or username already exists");
-                default -> ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
-            };
-        }
+        return ResponseEntity.ok(authService.registerUser(userRegistrationDto, httpServletResponse));
     }
 
 }

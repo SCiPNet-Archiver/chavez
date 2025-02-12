@@ -1,6 +1,7 @@
 package com.cantomiletea.chavez.auth;
 
-import com.cantomiletea.chavez.auth.exception.UserAlreadyExistsException;
+import com.cantomiletea.chavez.auth.exception.EmailAlreadyRegisteredException;
+import com.cantomiletea.chavez.auth.exception.UsernameTakenException;
 import com.cantomiletea.chavez.auth.jwt.JwtGenerator;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenEntity;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenRepo;
@@ -128,12 +129,13 @@ public class AuthService {
         try{
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
-            if (userEmailExists(userRegistrationDto) || userUsernameExists(userRegistrationDto)) {
-                throw new UserAlreadyExistsException("User already exists");
+            if (userUsernameExists(userRegistrationDto)) {
+                throw new UsernameTakenException("Username is already taken");
             }
 
-            //TODO: Eventually, we should be able to differentiate between an email already being registered
-            //TODO: and a username already being registered. This would be good for responsiveness on the frontend
+            if (userEmailExists(userRegistrationDto) ){
+                throw new EmailAlreadyRegisteredException("Email is already registered");
+            }
 
             UserInfoEntity userDetailsEntity = userInfoMapper.convertToEntity(userRegistrationDto);
             Authentication authentication = createAuthenticationObject(userDetailsEntity);
@@ -162,13 +164,17 @@ public class AuthService {
             log.error("[AuthService:registerUser] ERROR :: Password too simple");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password too simple");
 
-        } catch (UserAlreadyExistsException e) {
-            log.error("[AuthService:registerUser] ERROR :: User already exists");
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+        } catch (UsernameTakenException e) {
+            log.error("[AuthService:registerUser] ERROR :: Username is taken");
+            throw e;
+
+        } catch (EmailAlreadyRegisteredException e) {
+            log.error("[AuthService:registerUser] ERROR :: Email is already registered");
+            throw e;
 
         } catch (Exception e){
             log.error("[AuthService:registerUser] ERROR :: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Please try again");
         }
 
     }
