@@ -1,5 +1,6 @@
 package com.cantomiletea.chavez.auth;
 
+import com.cantomiletea.chavez.user.UserLoginDto;
 import com.cantomiletea.chavez.user.UserRegistrationDto;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +24,19 @@ public class AuthController {
 
     private final AuthService authService;
     @PostMapping("/sign-in")
-    public ResponseEntity<?> authenticateUser(Authentication authentication, HttpServletResponse res) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody UserLoginDto userLoginDto,
+                                              BindingResult bindingResult, HttpServletResponse res) {
 
-        return ResponseEntity.ok(authService.getJwtTokensAfterAuthentication(authentication, res));
+        log.info("[AuthController:authenticateUser]Authentication Process Started for user:{}",userLoginDto.username());
+        if (bindingResult.hasErrors()) {
+            List<String> errorMessage = bindingResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            log.error("[AuthController:registerUser]Errors in user:{}",errorMessage);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        }
+
+        return ResponseEntity.ok(authService.getAccessTokenFromCredentials(userLoginDto, res));
     }
 
     @PostMapping("/refresh-token")

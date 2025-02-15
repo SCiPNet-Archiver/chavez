@@ -54,12 +54,6 @@ public class SecurityConfig {
                 .securityMatcher(new AntPathRequestMatcher("/auth/sign-in/**"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .userDetailsService(userInfoDetailsService)
-                .exceptionHandling(e -> {
-                    e.authenticationEntryPoint((req, res, ex) ->
-                            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage()));
-                })
-                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 

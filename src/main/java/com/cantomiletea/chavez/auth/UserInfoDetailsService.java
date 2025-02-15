@@ -13,11 +13,17 @@ public class UserInfoDetailsService implements UserDetailsService {
 
     private final UserInfoRepo userInfoRepo;
 
+    /**
+     * Attempts to retrieve the <code>UserDetails</code> associated with an email/username.
+     * @param username The email/username of the account
+     * @return The <code>UserDetails</code> associated with the account
+     * @throws UsernameNotFoundException when the email/username is not registered with an account
+     */
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userInfoRepo
-                .findByEmail(email)
+                .findByEmailOrUsername(username, username)
                 .map(UserInfoDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Email not found in DB"));
+                .orElseThrow(() -> new UsernameNotFoundException("Username/email not found in DB"));
     }
 }

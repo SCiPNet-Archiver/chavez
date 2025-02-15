@@ -2,7 +2,7 @@ package com.cantomiletea.chavez.auth.jwt;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -18,32 +18,32 @@ public class JwtGenerator {
 
     private final JwtEncoder jwtEncoder;
 
-    public String generateAccessToken(Authentication authentication) {
+    public String generateAccessToken(UserDetails user) {
 
-        log.info("[JwtGenerator:generateAccessToken] Token Creation Started for:{}", authentication.getName());
+        log.info("[JwtGenerator:generateAccessToken] Token Creation Started for:{}", user.getUsername());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("scipnet")
                 .issuedAt(Instant.now())
 //                .expiresAt(Instant.now().plus(15 , ChronoUnit.MINUTES)) // Actually controls expiry time
                 .expiresAt(Instant.now().plus(1 , ChronoUnit.MINUTES))
-                .subject(authentication.getName())
+                .subject(user.getUsername())
                 .claim("scope", "USER")
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    public String generateRefreshToken(Authentication authentication) {
+    public String generateRefreshToken(UserDetails user) {
 
-        log.info("[JwtGenerator:generateRefreshToken] Token Creation Started for:{}", authentication.getName());
+        log.info("[JwtGenerator:generateRefreshToken] Token Creation Started for:{}", user.getUsername());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("scipnet")
                 .issuedAt(Instant.now())
                 // Matches amount in AuthService
                 .expiresAt(Instant.now().plus(15 , ChronoUnit.DAYS))
-                .subject(authentication.getName())
+                .subject(user.getUsername())
                 .claim("scope", "REFRESH_TOKEN")
                 .build();
 
