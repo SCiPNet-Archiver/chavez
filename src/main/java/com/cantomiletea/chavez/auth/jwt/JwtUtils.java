@@ -36,7 +36,7 @@ public class JwtUtils {
     private final UserInfoRepo userInfoRepo;
     public UserDetails userDetails(String username){
         return userInfoRepo
-                .findByUsername(username)
+                .findByUsernameAndActiveTrue(username)
                 .map(UserInfoDetails::new)
                 // Catch this if we want to handle the error
                 .orElseThrow(()-> new UsernameNotFoundException("Username: "+username+" does not exist"));

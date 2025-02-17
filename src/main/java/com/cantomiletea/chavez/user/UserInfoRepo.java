@@ -7,7 +7,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserInfoRepo extends JpaRepository<UserInfoEntity, Long> {
-    Optional<UserInfoEntity> findByEmail(String email);
-    Optional<UserInfoEntity> findByUsername(String username);
-    Optional<UserInfoEntity> findByEmailOrUsername(String email, String username);
+    Optional<UserInfoEntity> findByUsernameAndActiveTrue(String username);
+    Optional<UserInfoEntity> findByEmailAndActiveTrue(String username);
+    Optional<UserInfoEntity> findByEmailOrUsernameAndActiveTrue(String email, String username);
 }
+

@@ -57,12 +57,12 @@ public class AuthService {
                 .build();
     }
 
-    public boolean userEmailExists(UserRegistrationDto dto) {
-        return userInfoRepo.findByEmail(dto.email()).isPresent();
+    private boolean userUsernameExists(UserRegistrationDto userRegistrationDto) {
+        return userInfoRepo.findByUsernameAndActiveTrue(userRegistrationDto.username()).isPresent();
     }
 
-    public boolean userUsernameExists(UserRegistrationDto dto) {
-        return userInfoRepo.findByUsername(dto.username()).isPresent();
+    private boolean userEmailExists(UserRegistrationDto userRegistrationDto) {
+        return userInfoRepo.findByEmailAndActiveTrue(userRegistrationDto.username()).isPresent();
     }
 
     public AuthResponseDto registerUser(UserRegistrationDto userRegistrationDto,
@@ -139,8 +139,8 @@ public class AuthService {
     private String createAndSaveRefreshToken(UserDetails userDetails) {
         String refreshToken = jwtGenerator.generateRefreshToken(userDetails);
 
-        UserInfoEntity userInfoEntity = userInfoRepo.findByEmail(userDetails.getUsername()).orElse(
-                userInfoRepo.findByUsername(userDetails.getUsername()).get());
+        UserInfoEntity userInfoEntity = userInfoRepo.findByEmailAndActiveTrue(userDetails.getUsername()).orElse(
+                userInfoRepo.findByUsernameAndActiveTrue(userDetails.getUsername()).get());
 
         var refreshTokenEntity = RefreshTokenEntity.builder()
                 .user(userInfoEntity)
@@ -177,5 +177,15 @@ public class AuthService {
         UserDetails userDetails = userInfoDetailsService.loadUserByUsername(user.getUsername());
 
         return makeAccessTokenResponse(userDetails);
+    }
+
+    public void softDeleteUser(String username) {
+        userInfoRepo.findByEmailOrUsernameAndActiveTrue(username, username)
+                .ifPresent(u -> {
+                    u.setActive(false);
+                    userInfoRepo.save(u);
+                });
+
+
     }
 }

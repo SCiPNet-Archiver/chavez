@@ -47,4 +47,7 @@ public class UserInfoEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RefreshTokenEntity> refreshTokens;
+
+    @Column(nullable = false)
+    private boolean active = true;
 }

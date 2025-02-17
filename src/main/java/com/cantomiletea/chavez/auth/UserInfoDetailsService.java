@@ -22,7 +22,7 @@ public class UserInfoDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userInfoRepo
-                .findByEmailOrUsername(username, username)
+                .findByEmailOrUsernameAndActiveTrue(username, username)
                 .map(UserInfoDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("Username/email not found in DB"));
     }

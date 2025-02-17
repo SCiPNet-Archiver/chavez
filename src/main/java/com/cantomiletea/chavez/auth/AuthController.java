@@ -61,4 +61,16 @@ public class AuthController {
         return ResponseEntity.ok(authService.registerUser(userRegistrationDto, httpServletResponse));
     }
 
+    @DeleteMapping("/{username}")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+
+        log.info("[AuthController:deleteUser]Deleting user:{}",username);
+        authService.softDeleteUser(username);
+        return ResponseEntity.ok().build();
+
+
+
+    }
+
 }

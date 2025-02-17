@@ -20,9 +20,9 @@ import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -83,8 +83,20 @@ public class JwtRefreshTokenFilter extends OncePerRequestFilter {
             log.info("[JwtRefreshTokenFilter:doFilterInternal] Completed");
             filterChain.doFilter(request, response);
         }catch (JwtValidationException jwtValidationException){
-            log.error("[JwtRefreshTokenFilter:doFilterInternal] Exception due to :{}",jwtValidationException.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,jwtValidationException.getMessage());
+
+            log.error("[JwtRefreshTokenFilter:doFilterInternal] Exception due to: {}", jwtValidationException.getMessage());
+
+            // Set response headers and status code
+            response.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"timestamp\": \"" + LocalDateTime.now() + "\", " +
+                    "\"status\": 406, " +
+                    "\"error\": \"JWT expired or invalid\", " +
+                    "\"message\": \"" + jwtValidationException.getMessage() + "\", " +
+                    "\"path\": " + request.getRequestURI() + "}");
+            response.getWriter().flush();
+            return; // Prevents calling `filterChain.doFilter()`
+
         }
     }
 }
