@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
@@ -82,6 +83,20 @@ public class JwtRefreshTokenFilter extends OncePerRequestFilter {
             }
             log.info("[JwtRefreshTokenFilter:doFilterInternal] Completed");
             filterChain.doFilter(request, response);
+        }catch (UsernameNotFoundException e){
+            log.error("[JwtRefreshTokenFilter:doFilterInternal] Exception due to: {}", e.getMessage());
+
+            // Set response headers and status code
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"timestamp\": \"" + LocalDateTime.now() + "\", " +
+                    "\"status\": "+ HttpStatus.NOT_FOUND.value() +", " +
+                    "\"error\": \"JWT user not found\", " +
+                    "\"message\": \"" + e.getMessage() + "\", " +
+                    "\"path\": " + request.getRequestURI() + "}");
+            response.getWriter().flush();
+            return; // Prevents calling `filterChain.doFilter()`
+
         }catch (JwtValidationException jwtValidationException){
 
             log.error("[JwtRefreshTokenFilter:doFilterInternal] Exception due to: {}", jwtValidationException.getMessage());

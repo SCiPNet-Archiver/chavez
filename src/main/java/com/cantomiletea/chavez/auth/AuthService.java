@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,6 +31,7 @@ public class AuthService {
     private final UserInfoRepo userInfoRepo;
     private final RefreshTokenRepo refreshTokenRepo;
     private final UserInfoMapper userInfoMapper;
+    private final JwtDecoder jwtDecoder;
 
     private UserDetails authenticateUser(UserLoginDto userLoginDto) {
         try {
@@ -139,17 +142,22 @@ public class AuthService {
     private String createAndSaveRefreshToken(UserDetails userDetails) {
         String refreshToken = jwtGenerator.generateRefreshToken(userDetails);
 
-        UserInfoEntity userInfoEntity = userInfoRepo.findByEmailAndActiveTrue(userDetails.getUsername()).orElse(
-                userInfoRepo.findByUsernameAndActiveTrue(userDetails.getUsername()).get());
+        try {
+            UserInfoEntity userInfoEntity = userInfoRepo
+                    .findByEmailOrUsernameAndActiveTrue(userDetails.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername()));
 
-        var refreshTokenEntity = RefreshTokenEntity.builder()
-                .user(userInfoEntity)
-                .refreshToken(refreshToken)
-                .revoked(false)
-                .build();
-        refreshTokenRepo.save(refreshTokenEntity);
+            var refreshTokenEntity = RefreshTokenEntity.builder()
+                    .user(userInfoEntity)
+                    .refreshToken(refreshToken)
+                    .revoked(false)
+                    .build();
+            refreshTokenRepo.save(refreshTokenEntity);
 
-        return refreshToken;
+            return refreshToken;
+        } catch (UsernameNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with given credentials");
+        }
     }
 
     public AuthResponseDto getAccessTokenFromCredentials(UserLoginDto userLoginDto,
@@ -179,12 +187,31 @@ public class AuthService {
         return makeAccessTokenResponse(userDetails);
     }
 
-    public void softDeleteUser(String username) {
-        userInfoRepo.findByEmailOrUsernameAndActiveTrue(username, username)
-                .ifPresent(u -> {
-                    u.setActive(false);
-                    userInfoRepo.save(u);
-                });
+    public void softDeleteUser(String authHeader, String username) {
+        if (!authHeader.startsWith("Bearer")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please check token type");
+        }
+
+        try {
+            // Get the user associated with the username
+            UserInfoEntity user = userInfoRepo.findByEmailOrUsernameAndActiveTrue(username)
+                    .orElseThrow(() -> new UsernameNotFoundException(username));
+
+            String accessToken = authHeader.substring(7); // remove "Bearer " from the header
+            Jwt jwt = jwtDecoder.decode(accessToken);
+
+            if (!jwt.getSubject().equals(user.getUsername())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Username or email does not match access token");
+            }
+
+            userInfoRepo.findByEmailOrUsernameAndActiveTrue(username)
+                    .ifPresent(u -> {
+                        u.setActive(false);
+                        userInfoRepo.save(u);
+                    });
+        } catch (UsernameNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User "+ username +" not found");
+        }
 
 
     }

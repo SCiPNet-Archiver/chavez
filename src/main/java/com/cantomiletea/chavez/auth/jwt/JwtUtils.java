@@ -39,6 +39,6 @@ public class JwtUtils {
                 .findByUsernameAndActiveTrue(username)
                 .map(UserInfoDetails::new)
                 // Catch this if we want to handle the error
-                .orElseThrow(()-> new UsernameNotFoundException("Username: "+username+" does not exist"));
+                .orElseThrow(()-> new UsernameNotFoundException("User "+username+" not found"));
     }
 }

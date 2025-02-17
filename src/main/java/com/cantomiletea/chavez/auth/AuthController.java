@@ -63,10 +63,11 @@ public class AuthController {
 
     @DeleteMapping("/{username}")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+    public ResponseEntity<?> deleteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                        @PathVariable String username) {
 
         log.info("[AuthController:deleteUser]Deleting user:{}",username);
-        authService.softDeleteUser(username);
+        authService.softDeleteUser(authorizationHeader, username);
         return ResponseEntity.ok().build();
 
 
