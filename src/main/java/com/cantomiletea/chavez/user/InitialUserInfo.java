@@ -15,21 +15,21 @@ public class InitialUserInfo implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     @Override
     public void run(String... args) throws Exception {
-        UserInfoEntity manager = new UserInfoEntity();
-        manager.setUsername("Manager");
-        manager.setPassword(passwordEncoder.encode("password"));
-        manager.setEmail("manager@manager.com");
-
-        UserInfoEntity admin = new UserInfoEntity();
-        admin.setUsername("Admin");
-        admin.setPassword(passwordEncoder.encode("password"));
-        admin.setEmail("admin@admin.com");
-
-        UserInfoEntity user = new UserInfoEntity();
-        user.setUsername("User");
-        user.setPassword(passwordEncoder.encode("password"));
-        user.setEmail("user@user.com");
-
-        userInfoRepo.saveAll(List.of(manager, admin, user));
+//        UserInfoEntity manager = new UserInfoEntity();
+//        manager.setUsername("Manager");
+//        manager.setPassword(passwordEncoder.encode("password"));
+//        manager.setEmail("manager@manager.com");
+//
+//        UserInfoEntity admin = new UserInfoEntity();
+//        admin.setUsername("Admin");
+//        admin.setPassword(passwordEncoder.encode("password"));
+//        admin.setEmail("admin@admin.com");
+//
+//        UserInfoEntity user = new UserInfoEntity();
+//        user.setUsername("User");
+//        user.setPassword(passwordEncoder.encode("password"));
+//        user.setEmail("user@user.com");
+//
+//        userInfoRepo.saveAll(List.of(manager, admin, user));
     }
 }

@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<flyway.url>${DB_URL}</flyway.url>
+		<flyway.user>${DB_USERNAME}</flyway.user>
+		<flyway.password>${DB_PASSWORD}</flyway.password>
 	</properties>
 	<dependencies>
 		<dependency>
