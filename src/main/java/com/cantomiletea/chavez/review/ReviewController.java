@@ -1,6 +1,6 @@
 package com.cantomiletea.chavez.review;
 
-import com.cantomiletea.chavez.review.dto.ReviewAddDto;
+import com.cantomiletea.chavez.review.dto.ReviewDto;
 import com.cantomiletea.chavez.review.dto.ReviewDeleteDto;
 import com.cantomiletea.chavez.util.ControllerUtil;
 import jakarta.validation.Valid;
@@ -23,7 +23,7 @@ public class ReviewController {
     @PostMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity<?> addReview(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                       @Valid @RequestBody ReviewAddDto reviewAddDto,
+                                       @Valid @RequestBody ReviewDto reviewAddDto,
                                        BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -48,6 +48,22 @@ public class ReviewController {
         }
 
         reviewService.deleteReview(authorizationHeader, reviewDeleteDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity<?> editReview(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                          @Valid @RequestBody ReviewDto reviewDto,
+                                          BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            log.error("[ReviewController:editReview] Binding result error");
+            return ResponseEntity.badRequest().body(ControllerUtil.getBindingResultErrors(bindingResult));
+        }
+
+        reviewService.editReview(authorizationHeader, reviewDto);
 
         return ResponseEntity.ok().build();
     }

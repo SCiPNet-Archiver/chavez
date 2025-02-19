@@ -29,6 +29,7 @@ public class ReviewEntity {
     private String slug;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private ReviewRating rating;
 
     @Column
