@@ -1,5 +1,7 @@
 package com.cantomiletea.chavez.review;
 
+import com.cantomiletea.chavez.review.dto.ReviewAddDto;
+import com.cantomiletea.chavez.review.dto.ReviewDeleteDto;
 import com.cantomiletea.chavez.util.ControllerUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,22 @@ public class ReviewController {
         }
 
         reviewService.addReview(authorizationHeader, reviewAddDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity<?> deleteReview(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                          @Valid @RequestBody ReviewDeleteDto reviewDeleteDto,
+                                          BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            log.error("[ReviewController:deleteReview] Binding result error");
+            return ResponseEntity.badRequest().body(ControllerUtil.getBindingResultErrors(bindingResult));
+        }
+
+        reviewService.deleteReview(authorizationHeader, reviewDeleteDto);
 
         return ResponseEntity.ok().build();
     }

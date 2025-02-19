@@ -1,5 +1,6 @@
 package com.cantomiletea.chavez.review;
 
+import com.cantomiletea.chavez.review.dto.ReviewAddDto;
 import com.cantomiletea.chavez.user.UserInfoEntity;
 import com.cantomiletea.chavez.user.UserInfoRepo;
 import lombok.RequiredArgsConstructor;

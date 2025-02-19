@@ -1,5 +1,6 @@
 package com.cantomiletea.chavez.review;
 
+import com.cantomiletea.chavez.review.dto.ReviewRating;
 import com.cantomiletea.chavez.user.UserInfoEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
