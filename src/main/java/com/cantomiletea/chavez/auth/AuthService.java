@@ -34,6 +34,7 @@ public class AuthService {
     private final UserInfoMapper userInfoMapper;
     private final JwtDecoder jwtDecoder;
     private final JwtUtils jwtUtils;
+    private final UserInfoService userInfoService;
 
     private UserDetails authenticateUser(UserLoginDto userLoginDto) {
         try {
@@ -224,12 +225,8 @@ public class AuthService {
         }
 
         try {
-            String accessToken = authHeader.substring(7); // remove "Bearer " from the header
-            Jwt jwt = jwtDecoder.decode(accessToken);
-            String username = jwtUtils.getUsername(jwt);
 
-            UserInfoEntity user = userInfoRepo.findByEmailOrUsernameAndActiveTrue(username)
-                    .orElseThrow(() -> new UsernameNotFoundException(username));
+            UserInfoEntity user = userInfoService.getUserInfoByJwt(authHeader);
 
             user.setUsername(userEditDto.username());
             user.setEmail(userEditDto.email());

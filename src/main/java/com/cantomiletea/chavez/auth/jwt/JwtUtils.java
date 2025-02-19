@@ -1,21 +1,31 @@
 package com.cantomiletea.chavez.auth.jwt;
 
+import com.cantomiletea.chavez.auth.RSAKeyRecord;
 import com.cantomiletea.chavez.auth.UserInfoDetails;
 import com.cantomiletea.chavez.user.UserInfoRepo;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Objects;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class JwtUtils {
+
+    @Getter
+    private final JwtDecoder jwtDecoder;
+
+    public JwtUtils(RSAKeyRecord rsaKeyRecord, UserInfoRepo userInfoRepo) {
+        this.jwtDecoder = NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
+        this.userInfoRepo = userInfoRepo;
+    }
 
     public String getUsername(Jwt jwtToken){
         return jwtToken.getSubject();

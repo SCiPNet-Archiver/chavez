@@ -1,6 +1,7 @@
 package com.cantomiletea.chavez.user;
 
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenEntity;
+import com.cantomiletea.chavez.review.ReviewEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -50,4 +52,7 @@ public class UserInfoEntity {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<ReviewEntity> reviews;
 }

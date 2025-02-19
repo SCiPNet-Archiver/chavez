@@ -10,7 +10,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
@@ -141,13 +139,15 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtRefreshTokenFilter(rsaKeyRecord,jwtUtils,refreshTokenRepo), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> {
-                    log.error("[SecurityConfig:refreshTokenSecurityFilterChain] Exception due to: {}",ex);
+                    log.error("[SecurityConfig:deleteUserSecurityFilterChain] Exception due to: {}",ex);
                     ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint());
                     ex.accessDeniedHandler(new BearerTokenAccessDeniedHandler());
                 })
                 .httpBasic(Customizer.withDefaults())
                 .build();
     }
+
+
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -156,7 +156,7 @@ public class SecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
+        return jwtUtils.getJwtDecoder();
     }
 
     @Bean
