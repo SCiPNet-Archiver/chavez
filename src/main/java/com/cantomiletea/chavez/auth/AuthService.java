@@ -3,6 +3,7 @@ package com.cantomiletea.chavez.auth;
 import com.cantomiletea.chavez.auth.exception.EmailAlreadyRegisteredException;
 import com.cantomiletea.chavez.auth.exception.UsernameTakenException;
 import com.cantomiletea.chavez.auth.jwt.JwtGenerator;
+import com.cantomiletea.chavez.auth.jwt.JwtUtils;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenEntity;
 import com.cantomiletea.chavez.auth.refresh.RefreshTokenRepo;
 import com.cantomiletea.chavez.user.*;
@@ -32,6 +33,7 @@ public class AuthService {
     private final RefreshTokenRepo refreshTokenRepo;
     private final UserInfoMapper userInfoMapper;
     private final JwtDecoder jwtDecoder;
+    private final JwtUtils jwtUtils;
 
     private UserDetails authenticateUser(UserLoginDto userLoginDto) {
         try {
@@ -212,7 +214,31 @@ public class AuthService {
         } catch (UsernameNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User "+ username +" not found");
         }
+    }
 
 
+    public void editUser(String authHeader, UserEditDto userEditDto) {
+
+        if (!authHeader.startsWith("Bearer")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please check token type");
+        }
+
+        try {
+            String accessToken = authHeader.substring(7); // remove "Bearer " from the header
+            Jwt jwt = jwtDecoder.decode(accessToken);
+            String username = jwtUtils.getUsername(jwt);
+
+            UserInfoEntity user = userInfoRepo.findByEmailOrUsernameAndActiveTrue(username)
+                    .orElseThrow(() -> new UsernameNotFoundException(username));
+
+            user.setUsername(userEditDto.username());
+            user.setEmail(userEditDto.email());
+            user.setBio(userEditDto.bio());
+            user.setPfpUrl(userEditDto.pfpUrl());
+
+            userInfoRepo.save(user);
+        } catch (UsernameNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "JWT username not found");
+        }
     }
 }

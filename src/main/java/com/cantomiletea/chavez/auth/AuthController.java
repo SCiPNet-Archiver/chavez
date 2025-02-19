@@ -1,5 +1,6 @@
 package com.cantomiletea.chavez.auth;
 
+import com.cantomiletea.chavez.user.UserEditDto;
 import com.cantomiletea.chavez.user.UserLoginDto;
 import com.cantomiletea.chavez.user.UserRegistrationDto;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,7 +33,7 @@ public class AuthController {
             List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList();
-            log.error("[AuthController:registerUser]Errors in user:{}",errorMessage);
+            log.error("[AuthController:authenticateUser]Errors in user:{}",errorMessage);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
@@ -74,4 +75,22 @@ public class AuthController {
 
     }
 
+    @PutMapping("/")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity<?> editUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                      @Valid @RequestBody UserEditDto userEditDto,
+                                      BindingResult bindingResult) {
+        log.info("[AuthController:editUser]Editing user:{}", userEditDto);
+        if (bindingResult.hasErrors()) {
+            List<String> errorMessage = bindingResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            log.error("[AuthController:editUser]Errors in user:{}", errorMessage);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        }
+
+        authService.editUser(authorizationHeader, userEditDto);
+        return ResponseEntity.ok().build();
+
+    }
 }
