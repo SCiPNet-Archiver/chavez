@@ -1,6 +1,6 @@
 package com.cantomiletea.chavez.review;
 
-import com.cantomiletea.chavez.review.dto.ReviewDto;
+import com.cantomiletea.chavez.review.dto.ReviewMinimalDto;
 import com.cantomiletea.chavez.user.UserInfoEntity;
 import com.cantomiletea.chavez.user.UserInfoRepo;
 import lombok.RequiredArgsConstructor;
@@ -12,16 +12,16 @@ import org.springframework.stereotype.Component;
 public class ReviewMapper {
     private final UserInfoRepo userInfoRepo;
 
-    public ReviewEntity convertToEntity(ReviewDto reviewDto) {
+    public ReviewEntity convertToEntity(ReviewMinimalDto reviewMinimalDto) {
         ReviewEntity reviewEntity = new ReviewEntity();
 
-        UserInfoEntity user = userInfoRepo.findByEmailOrUsernameAndActiveTrue(reviewDto.username())
-                        .orElseThrow(() -> new UsernameNotFoundException(reviewDto.username()));
+        UserInfoEntity user = userInfoRepo.findByEmailOrUsernameAndActiveTrue(reviewMinimalDto.username())
+                        .orElseThrow(() -> new UsernameNotFoundException(reviewMinimalDto.username()));
 
         reviewEntity.setUser(user);
-        reviewEntity.setSlug(reviewDto.slug());
-        reviewEntity.setRating(reviewDto.rating());
-        reviewEntity.setComment(reviewDto.comment());
+        reviewEntity.setSlug(reviewMinimalDto.slug());
+        reviewEntity.setRating(reviewMinimalDto.rating());
+        reviewEntity.setComment(reviewMinimalDto.comment());
         return reviewEntity;
     }
 }

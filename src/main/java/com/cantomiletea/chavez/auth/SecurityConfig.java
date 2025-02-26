@@ -30,7 +30,10 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 @EnableWebSecurity
@@ -44,12 +47,22 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final RefreshTokenRepo refreshTokenRepo;
     private final LogoutHandlerService logoutHandlerService;
+    private final HandlerMappingIntrospector handlerMappingIntrospector;
 
-    @Order(1)
     @Bean
     public SecurityFilterChain signInFilterChain(final HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(new AntPathRequestMatcher("/auth/sign-in/**"))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+    }
+
+    @Order(1)
+    @Bean
+    public SecurityFilterChain getReviewSecurityFilterChain(final HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher(new MvcRequestMatcher(handlerMappingIntrospector, "/api/review/{username}"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
@@ -75,7 +88,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Order(3)
     @Bean
     public SecurityFilterChain refreshTokenSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
@@ -94,7 +106,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Order(4)
     @Bean
     public SecurityFilterChain logoutSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
@@ -117,7 +128,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Order(5)
     @Bean
     public SecurityFilterChain registerSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
@@ -164,5 +174,10 @@ public class SecurityConfig {
         JWK jwk = new RSAKey.Builder(rsaKeyRecord.rsaPublicKey()).privateKey(rsaKeyRecord.rsaPrivateKey()).build();
         JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwkSource);
+    }
+
+    @Bean
+    HandlerMappingIntrospector handlerMappingIntrospector() {
+        return new HandlerMappingIntrospector();
     }
 }

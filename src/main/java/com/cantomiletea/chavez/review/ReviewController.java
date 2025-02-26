@@ -1,7 +1,9 @@
 package com.cantomiletea.chavez.review;
 
-import com.cantomiletea.chavez.review.dto.ReviewDto;
+import com.cantomiletea.chavez.review.dto.ReviewArticleDto;
+import com.cantomiletea.chavez.review.dto.ReviewMinimalDto;
 import com.cantomiletea.chavez.review.dto.ReviewDeleteDto;
+import com.cantomiletea.chavez.review.dto.ReviewResponseDto;
 import com.cantomiletea.chavez.util.ControllerUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/review")
@@ -23,7 +27,7 @@ public class ReviewController {
     @PostMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity<?> addReview(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                       @Valid @RequestBody ReviewDto reviewAddDto,
+                                       @Valid @RequestBody ReviewMinimalDto reviewAddDto,
                                        BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -55,7 +59,7 @@ public class ReviewController {
     @PutMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity<?> editReview(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                          @Valid @RequestBody ReviewDto reviewDto,
+                                          @Valid @RequestBody ReviewMinimalDto reviewMinimalDto,
                                           BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
@@ -63,8 +67,13 @@ public class ReviewController {
             return ResponseEntity.badRequest().body(ControllerUtil.getBindingResultErrors(bindingResult));
         }
 
-        reviewService.editReview(authorizationHeader, reviewDto);
+        reviewService.editReview(authorizationHeader, reviewMinimalDto);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<List<ReviewResponseDto>> getUserReviews(@PathVariable String username) {
+        return ResponseEntity.ok(reviewService.getUserReviews(username));
     }
 }

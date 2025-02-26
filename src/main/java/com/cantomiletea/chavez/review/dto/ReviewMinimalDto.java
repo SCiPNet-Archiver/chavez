@@ -2,7 +2,7 @@ package com.cantomiletea.chavez.review.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 
-public record ReviewDto(
+public record ReviewMinimalDto(
         @NotEmpty(message = "Username must not be empty")
         String username,
 
